@@ -8,6 +8,8 @@
 
 Convierte en vivo lo que tecleas en español a fonemas X-SAMPA que los voicebanks japoneses sí saben pronunciar.
 
+🌐 **[Web oficial](https://esp2xsampa.nekoweb.org/)** · 📦 [Descargas](../../releases)
+
 ![Versión](https://img.shields.io/badge/versión-2.4-1f6feb)
 ![Licencia](https://img.shields.io/badge/licencia-GPL--3.0-2ea44f)
 ![Plataforma](https://img.shields.io/badge/Windows-0078d7?logo=windows&logoColor=white)

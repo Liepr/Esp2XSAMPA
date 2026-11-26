@@ -1,5 +1,19 @@
 # Registro de cambios
 
+## v2.5
+
+### ✨ Novedades
+- **Erre fuerte con `RR`:** dos `R` mayúsculas juntas (Bloq Mayús o Shift) dan **cuatro** `4` en lugar de dos: una erre fuertemente pronunciada, más marcada que la `R` sola.
+  - `RO` → `4 4 o`, `RRO` → `4 4 4 4 o`
+  - `peRRo` → `p e 4 4 4 4 o`
+  - Cada `R` mayúscula suma dos `4`, así que `RRR` → seis `4`.
+- Sin cambios: `r` → `4`, y `rr`, `Rr`, `rR` y `R` siguen dando `4 4`.
+
+### 🔧 Mejoras
+- Se quita la opción «Sonido de z». La `z` minúscula sale siempre como `s` y la `Z` mayúscula siempre como `z`, que era lo predeterminado. Si tu `config.json` todavía guarda esa opción, se ignora.
+- El menú de ayuda («Atajos y fonemas») incluye la entrada de `RR` y un texto de `Z` más simple.
+- La página web actualiza el apartado "Un vistazo" para que funcione igual que esta versión.
+
 ## v2.4
 
 ### ✨ Novedades

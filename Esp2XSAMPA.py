@@ -28,6 +28,8 @@ import unicodedata
 YEISMO = "Z"
 
 # "sh" da siempre el fonema "S" (sha -> S a), igual que "ch" da "tS".
+# Una C escrita en MAYUSCULA ante e o i (Ce, Ci) da siempre "dz" en lugar de "s":
+#   ce -> s e      Ce -> dz e      ci -> s i      Ci -> dz i      (Ca, Co, Cu y Ch no cambian)
 
 # Fonemas X-SAMPA de los VOCALOID japoneses (los unicos que acepta la voz):
 #   vocales:     a i M e o
@@ -111,6 +113,7 @@ G_CAP = "\x06"           # G escrita en mayuscula: GI (suave) -> C i; GE -> h e
 R_CAP = "\x07"           # R escrita en mayuscula: siempre rr (4 4); dos juntas (RR): 4 4 4 4
 I_CAP = "\x0e"           # I escrita en mayuscula: siempre la vocal i, nunca j
 Z_CAP = "\x10"           # Z escrita en mayuscula: variante segun el esquema (ver ZETA)
+C_CAP = "\x13"           # C escrita en mayuscula ante e / i (Ce, Ci): siempre dz
 Y_CAP = "\x11"           # Y escrita en mayuscula ante vocal: siempre j, en todos los modos de ll / y
 I_MARCA = "\x12"          # i entre consonante y vocal tonica (tilde o mayuscula): ver g2p
 CONS_ANTES_I = "bcdfgjklmnñprstvwxzBCDFGJKLMNÑPRSTVWXZ"
@@ -149,7 +152,7 @@ def g2p(palabra):
         palabra)
     palabra = palabra.replace("U", U_CAP).replace("\u00dc", DIERESIS_CAP)
     palabra = palabra.replace("J", J_CAP).replace("G", G_CAP).replace("R", R_CAP)
-    palabra = palabra.replace("Z", Z_CAP).replace("Y", Y_CAP)
+    palabra = palabra.replace("Z", Z_CAP).replace("Y", Y_CAP).replace("C", C_CAP)
     palabra = palabra.replace("I", I_CAP)          # antes de normalizar (que pasa a minusculas)
     w = normalizar(palabra)
     n = len(w)
@@ -162,12 +165,15 @@ def g2p(palabra):
         sig2 = w[i + 2] if i + 2 < n else ""
         suave = sig != "" and sig in SUAVES
 
-        if c == "c":
+        if c in ("c", C_CAP):
             if sig == "h":
                 out.append("tS")
                 i += 2
                 continue
-            out.append("s" if suave else "k")
+            if c == C_CAP and suave:
+                out.append("dz")        # Ce, Ci con C mayuscula: siempre dz
+            else:
+                out.append("s" if suave else "k")
         elif c == "q":
             out.append("k")
             if sig in ("u", U_CAP):
@@ -860,8 +866,8 @@ def filtro(msg, data):
         if estado.acento:
             letra = ACENTOS[estado.acento].get(letra, letra)
             estado.acento = None
-        if letra in ("u", "\u00fc", "i", "j", "g", "r", "z", "y", "a", "e", "o") and mayusculas():
-            letra = letra.upper()              # u -> M, i -> i, j/g -> jota fuerte, r -> rr, z -> z sonora, y -> j (ver g2p)
+        if letra in ("u", "\u00fc", "i", "j", "g", "r", "z", "y", "c", "a", "e", "o") and mayusculas():
+            letra = letra.upper()              # u -> M, i -> i, j/g -> jota fuerte, r -> rr, z -> z sonora, y -> j, c -> dz ante e/i (ver g2p)
         estado.buffer.append(letra)
         enviar_palabra()
         bloquear(vk)
@@ -936,6 +942,12 @@ TEXTO_AYUDA = (
     "      fuertemente pronunciada, más marcada que la R sola.\n"
     "      RO \u2192 4 4 o        RRO \u2192 4 4 4 4 o\n"
     "      pero \u2192 p e 4 o        peRRo \u2192 p e 4 4 4 4 o\n"
+    "\n"
+    "  C  ante e o i (Ce, Ci) sale siempre como dz, en lugar de s.\n"
+    "      Ante a, o, u sigue siendo k, y Ch sigue siendo tS.\n"
+    "      ce \u2192 s e        Ce \u2192 dz e\n"
+    "      ci \u2192 s i        Ci \u2192 dz i\n"
+    "      ca \u2192 k a        Ca \u2192 k a\n"
     "\n"
     "  Y  al inicio de una sílaba (ante vocal) sale siempre como j,\n"
     "      sea cual sea el sonido de ll / y elegido en la ventana.\n"
@@ -1665,7 +1677,7 @@ class Ventana:
         self.ay_cerrar.focus_set()
 
     def _poblar_ayuda(self):
-        """Escribe el texto de ayuda con formato: titulos, teclas (U I J R RR Y Z) y flechas."""
+        """Escribe el texto de ayuda con formato: titulos, teclas (C U I J R RR Y Z) y flechas."""
         txt = self.ay_texto
         lineas = TEXTO_AYUDA.format(tecla=nombre_tecla(config["toggle"])).split("\n")
         txt.config(state="normal")
@@ -1677,7 +1689,7 @@ class Ventana:
                 txt.tag_add("titulo", "%d.0" % n, "%d.end" % n)
             if re.match(r"^ {6}[zZ] ", linea):                       # esquemas de la z
                 txt.tag_add("sub", "%d.0" % n, "%d.end" % n)
-            m = re.match(r"^(\s+)(RR|[UIJRYZ])\s\s", linea)           # letra en mayuscula
+            m = re.match(r"^(\s+)(RR|[CUIJRYZ])\s\s", linea)           # letra en mayuscula
             if m:
                 c = len(m.group(1))
                 txt.tag_add("tecla", "%d.%d" % (n, c), "%d.%d" % (n, c + len(m.group(2))))

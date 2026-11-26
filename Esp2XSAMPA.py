@@ -23,7 +23,11 @@ import unicodedata
 # ----------------------------------------------------------------------------
 # Pronunciacion de "ll" y de "y" consonantica.
 # Rioplatense: "Z" (zheismo) o "S" (sheismo). Otros dialectos: "j".
+# Excepcion: una Y escrita en MAYUSCULA al inicio de silaba (ante vocal) da siempre "j",
+# sea cual sea esta opcion:   yo -> Z o  (o S o / j o)      YO -> j o
 YEISMO = "Z"
+
+# "sh" da siempre el fonema "S" (sha -> S a), igual que "ch" da "tS".
 
 # Fonemas X-SAMPA de los VOCALOID japoneses (los unicos que acepta la voz):
 #   vocales:     a i M e o
@@ -107,6 +111,7 @@ G_CAP = "\x06"           # G escrita en mayuscula: GI (suave) -> C i; GE -> h e
 R_CAP = "\x07"           # R escrita en mayuscula: siempre rr (4 4); dos juntas (RR): 4 4 4 4
 I_CAP = "\x0e"           # I escrita en mayuscula: siempre la vocal i, nunca j
 Z_CAP = "\x10"           # Z escrita en mayuscula: variante segun el esquema (ver ZETA)
+Y_CAP = "\x11"           # Y escrita en mayuscula ante vocal: siempre j, en todos los modos de ll / y
 I_MARCA = "\x12"          # i entre consonante y vocal tonica (tilde o mayuscula): ver g2p
 CONS_ANTES_I = "bcdfgjklmnñprstvwxzBCDFGJKLMNÑPRSTVWXZ"
 RE_I_TONICA = _re.compile("([%s])i([aeouáéóúAEOUÁÉÓÚ]+)" % CONS_ANTES_I)
@@ -144,7 +149,7 @@ def g2p(palabra):
         palabra)
     palabra = palabra.replace("U", U_CAP).replace("\u00dc", DIERESIS_CAP)
     palabra = palabra.replace("J", J_CAP).replace("G", G_CAP).replace("R", R_CAP)
-    palabra = palabra.replace("Z", Z_CAP)
+    palabra = palabra.replace("Z", Z_CAP).replace("Y", Y_CAP)
     palabra = palabra.replace("I", I_CAP)          # antes de normalizar (que pasa a minusculas)
     w = normalizar(palabra)
     n = len(w)
@@ -192,7 +197,9 @@ def g2p(palabra):
                 i += 2 if doble else 1
                 continue
             out.append(R_L_JAPONESA)
-        elif c == "y":
+        elif c == Y_CAP and sig != "" and sig in VOCALES:
+            out.append("j")             # Y en mayuscula al inicio de silaba: siempre j
+        elif c in ("y", Y_CAP):
             if sig == "" or sig not in VOCALES:
                 if n == 1:
                     out.append("i")
@@ -229,6 +236,12 @@ def g2p(palabra):
                     i += 2
                     continue
             out.append(jota(fuerte, sig))
+        elif c == "s":
+            if sig == "h":
+                out.append("S")         # sh: siempre S (sha -> S a)
+                i += 2
+                continue
+            out.append("s")
         elif c == "z":
             out.append(ZETA_ESQUEMAS[ZETA][0])
         elif c == Z_CAP:
@@ -847,8 +860,8 @@ def filtro(msg, data):
         if estado.acento:
             letra = ACENTOS[estado.acento].get(letra, letra)
             estado.acento = None
-        if letra in ("u", "\u00fc", "i", "j", "g", "r", "z", "a", "e", "o") and mayusculas():
-            letra = letra.upper()              # u -> M, i -> i, j/g -> jota fuerte, r -> rr, z -> z sonora (ver g2p)
+        if letra in ("u", "\u00fc", "i", "j", "g", "r", "z", "y", "a", "e", "o") and mayusculas():
+            letra = letra.upper()              # u -> M, i -> i, j/g -> jota fuerte, r -> rr, z -> z sonora, y -> j (ver g2p)
         estado.buffer.append(letra)
         enviar_palabra()
         bloquear(vk)
@@ -882,6 +895,7 @@ TEXTO_AYUDA = (
     "    r \u2192 4        rr \u2192 4 4        l \u2192 4\n"
     "    u \u2192 M        f \u2192 p\\        j \u2192 h\n"
     "    z \u2192 s  (o z, si eliges el esquema z \u2192 z, Z \u2192 dz)\n"
+    "    sh \u2192 S  siempre  (sha \u2192 S a,  shu \u2192 S M)\n"
     "    i \u2192 j si forma diptongo, si no i (tiene \u2192 t j e n e)\n"
     "    k g t d p b m r + i \u2192 con apóstrofe  (ri \u2192 4' i,  ti \u2192 t' i,  Ri \u2192 4 4' i)\n"
     "    ni \u2192 J i      fi \u2192 p\\' i      (s, z, ch, h, etc.: sin apóstrofe)\n"
@@ -922,6 +936,13 @@ TEXTO_AYUDA = (
     "      fuertemente pronunciada, más marcada que la R sola.\n"
     "      RO \u2192 4 4 o        RRO \u2192 4 4 4 4 o\n"
     "      pero \u2192 p e 4 o        peRRo \u2192 p e 4 4 4 4 o\n"
+    "\n"
+    "  Y  al inicio de una sílaba (ante vocal) sale siempre como j,\n"
+    "      sea cual sea el sonido de ll / y elegido en la ventana.\n"
+    "      Con ll / y \u2192 Z:   yo \u2192 Z o        YO \u2192 j o\n"
+    "      Con ll / y \u2192 S:   yo \u2192 S o        YO \u2192 j o\n"
+    "      Con ll / y \u2192 j:   yo \u2192 j o        YO \u2192 j o\n"
+    "      Al final de la sílaba (hoy, rey) la Y no cambia.\n"
     "\n"
     "  Z  cambia a su variante. En la ventana se elige entre tres esquemas:\n"
     "\n"
@@ -1644,7 +1665,7 @@ class Ventana:
         self.ay_cerrar.focus_set()
 
     def _poblar_ayuda(self):
-        """Escribe el texto de ayuda con formato: titulos, teclas (U I J R RR Z) y flechas."""
+        """Escribe el texto de ayuda con formato: titulos, teclas (U I J R RR Y Z) y flechas."""
         txt = self.ay_texto
         lineas = TEXTO_AYUDA.format(tecla=nombre_tecla(config["toggle"])).split("\n")
         txt.config(state="normal")
@@ -1656,7 +1677,7 @@ class Ventana:
                 txt.tag_add("titulo", "%d.0" % n, "%d.end" % n)
             if re.match(r"^ {6}[zZ] ", linea):                       # esquemas de la z
                 txt.tag_add("sub", "%d.0" % n, "%d.end" % n)
-            m = re.match(r"^(\s+)(RR|[UIJRZ])\s\s", linea)           # letra en mayuscula
+            m = re.match(r"^(\s+)(RR|[UIJRYZ])\s\s", linea)           # letra en mayuscula
             if m:
                 c = len(m.group(1))
                 txt.tag_add("tecla", "%d.%d" % (n, c), "%d.%d" % (n, c + len(m.group(2))))

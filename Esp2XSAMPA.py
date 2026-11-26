@@ -73,13 +73,22 @@ VOCAL_U = "M"
 F_SUAVE = "p\\"
 
 # La "z" espanola es [s] (seseo) o [θ] (Espana); en japones no hay [θ].
-#   minuscula z -> s  (さ, sorda)   el sonido real de la z espanola
-#   mayuscula Z -> z  (ざ, sonora)  mas suave y "zumbada"; sirve si la s suena seca
-#                                   o se pierde entre vocales, o para la z sonora
-#                                   (mismo, desde). Es una opcion estetica.
+# Hay tres esquemas (se elige en la ventana); el predeterminado es "sdz":
+#   "sdz":  minuscula s  (さ, sorda)   el sonido real de la z espanola
+#           mayuscula dz (ざ africada) mismo golpe de "d" que en "zdz", pero conservando
+#                                      la s sorda en minuscula; ataque marcado cuando
+#                                      se quiere, sin perder el seseo normal.
+#   "sz":   minuscula s  (さ, sorda)   el sonido real de la z espanola
+#           mayuscula z  (ざ, sonora)  mas suave y "zumbada"; sirve si la s suena seca
+#                                      o se pierde entre vocales, o para la z sonora
+#                                      (mismo, desde). Es una opcion estetica.
+#   "zdz":  minuscula z  (ざ, sonora)  fricativa continua, suave
+#           mayuscula dz (ざ africada) lleva un golpe de "d" antes; ataque mas marcado,
+#                                      util a principio de palabra o tras una pausa.
+#           Aqui la s sorda solo sale con la letra s (no con la z).
 # "Mayuscula" = Bloq Mayus o Shift. Se puede alternar letra por letra.
-# (Antes habia un segundo esquema, z -> z / Z -> dz, que se elegia en la ventana; se quito.)
-Z_MINUSCULA, Z_MAYUSCULA = "s", "z"
+ZETA_ESQUEMAS = {"sdz": ("s", "dz"), "sz": ("s", "z"), "zdz": ("z", "dz")}   # (minuscula, mayuscula)
+ZETA = "sdz"
 
 # La "i": en minuscula el programa decide solo si es semiconsonante (j) o vocal (i):
 # j cuando forma diptongo con una vocal vecina, tanto al principio (tiene -> t j e n e)
@@ -97,7 +106,7 @@ J_CAP = "\x05"           # J escrita en mayuscula: JI -> C i, JU -> p\ M (el res
 G_CAP = "\x06"           # G escrita en mayuscula: GI (suave) -> C i; GE -> h e
 R_CAP = "\x07"           # R escrita en mayuscula: siempre rr (4 4); dos juntas (RR): 4 4 4 4
 I_CAP = "\x0e"           # I escrita en mayuscula: siempre la vocal i, nunca j
-Z_CAP = "\x10"           # Z escrita en mayuscula: z sonora (ver Z_MAYUSCULA)
+Z_CAP = "\x10"           # Z escrita en mayuscula: variante segun el esquema (ver ZETA)
 I_MARCA = "\x12"          # i entre consonante y vocal tonica (tilde o mayuscula): ver g2p
 CONS_ANTES_I = "bcdfgjklmnñprstvwxzBCDFGJKLMNÑPRSTVWXZ"
 RE_I_TONICA = _re.compile("([%s])i([aeouáéóúAEOUÁÉÓÚ]+)" % CONS_ANTES_I)
@@ -221,9 +230,9 @@ def g2p(palabra):
                     continue
             out.append(jota(fuerte, sig))
         elif c == "z":
-            out.append(Z_MINUSCULA)
+            out.append(ZETA_ESQUEMAS[ZETA][0])
         elif c == Z_CAP:
-            out.append(Z_MAYUSCULA)   # Z en mayuscula
+            out.append(ZETA_ESQUEMAS[ZETA][1])   # Z en mayuscula
         elif c == "v":
             out.append("b")
         elif c == "f":
@@ -545,7 +554,7 @@ def nombre_tecla(vk):
 
 
 def cargar_config():
-    global YEISMO
+    global YEISMO, ZETA
     ruta = next((r for r in (RUTA_CONFIG,) + RUTAS_CONFIG_ANTIGUAS if os.path.exists(r)),
                 RUTA_CONFIG)
     try:
@@ -555,6 +564,8 @@ def cargar_config():
             config["toggle"] = d["toggle"]
         if d.get("ll") in ("Z", "S", "j"):
             YEISMO = d["ll"]
+        if d.get("zeta") in ZETA_ESQUEMAS:
+            ZETA = d["zeta"]
         config["visible"] = bool(d.get("visible", False))
         config["bandeja"] = bool(d.get("bandeja", True))
         if d.get("tema") in TEMAS:
@@ -568,7 +579,7 @@ def cargar_config():
 def guardar_config():
     try:
         with open(RUTA_CONFIG, "w", encoding="utf-8") as f:
-            json.dump({"toggle": config["toggle"], "ll": YEISMO,
+            json.dump({"toggle": config["toggle"], "ll": YEISMO, "zeta": ZETA,
                        "visible": config["visible"], "bandeja": config["bandeja"],
                        "tema": config["tema"], "inicio": config["inicio"], "inicio_ruta": config["inicio_ruta"]}, f)
     except Exception:
@@ -870,7 +881,7 @@ TEXTO_AYUDA = (
     "Con minúsculas:\n"
     "    r \u2192 4        rr \u2192 4 4        l \u2192 4\n"
     "    u \u2192 M        f \u2192 p\\        j \u2192 h\n"
-    "    z \u2192 s\n"
+    "    z \u2192 s  (o z, si eliges el esquema z \u2192 z, Z \u2192 dz)\n"
     "    i \u2192 j si forma diptongo, si no i (tiene \u2192 t j e n e)\n"
     "    k g t d p b m r + i \u2192 con apóstrofe  (ri \u2192 4' i,  ti \u2192 t' i,  Ri \u2192 4 4' i)\n"
     "    ni \u2192 J i      fi \u2192 p\\' i      (s, z, ch, h, etc.: sin apóstrofe)\n"
@@ -912,19 +923,34 @@ TEXTO_AYUDA = (
     "      RO \u2192 4 4 o        RRO \u2192 4 4 4 4 o\n"
     "      pero \u2192 p e 4 o        peRRo \u2192 p e 4 4 4 4 o\n"
     "\n"
-    "  Z  sale como z sonora (\u3056) en lugar de s (\u3055), que es lo\n"
-    "      que da la z minúscula y el sonido real de la z española.\n"
-    "      La z sonora suena más suave y \"zumbada\": útil si la s\n"
-    "      suena seca o se pierde entre vocales.\n"
-    "      za \u2192 s a        ZA \u2192 z a\n"
+    "  Z  cambia a su variante. En la ventana se elige entre tres esquemas:\n"
+    "\n"
+    "      z \u2192 s,  Z \u2192 dz   (predeterminado)\n"
+    "        La s sorda (\u3055) es el sonido real de la z espa\u00f1ola, y se\n"
+    "        mantiene con la z min\u00fascula. La Z may\u00fascula da la dz, con\n"
+    "        un golpe de \"d\" antes: ataque m\u00e1s marcado, \u00fatil a\n"
+    "        principio de palabra o tras una pausa.\n"
+    "        za \u2192 s a        ZA \u2192 dz a\n"
+    "\n"
+    "      z \u2192 s,  Z \u2192 z\n"
+    "        La s (\u3055) es el sonido real de la z espa\u00f1ola. La z\n"
+    "        sonora (\u3056) suena m\u00e1s suave y \"zumbada\": \u00fatil si la s\n"
+    "        suena seca o se pierde entre vocales.\n"
+    "        za \u2192 s a        ZA \u2192 z a\n"
+    "\n"
+    "      z \u2192 z,  Z \u2192 dz\n"
+    "        La dz lleva un golpe de \"d\" antes: ataque m\u00e1s marcado,\n"
+    "        \u00fatil a principio de palabra o tras una pausa. Aqu\u00ed la\n"
+    "        s sorda solo sale con la letra s.\n"
+    "        za \u2192 z a        ZA \u2192 dz a\n"
     "\n"
     "Los ajustes (tecla de activación, sonido de ll / y,\n"
-    "tema, ventana siempre visible y bandeja) se\n"
+    "esquema de z, tema, ventana siempre visible y bandeja) se\n"
     "guardan en config.json, en la misma carpeta que el\n"
     "programa.\n"
     "\n"
     "El botón Restaurar predeterminados vuelve a: tecla F9,\n"
-    "ll / y \u2192 Z, ventana no siempre\n"
+    "ll / y \u2192 Z, z \u2192 s / Z \u2192 dz, ventana no siempre\n"
     "visible, envío a la bandeja al cerrar, tema Clásico e inicio\n"
     "con Windows desactivado.\n"
     "\n"
@@ -1208,6 +1234,7 @@ class Ventana:
 
         self.var_activo = tk.BooleanVar(value=estado.activo)
         self.var_ll = tk.StringVar(value=YEISMO)
+        self.var_zeta = tk.StringVar(value=ZETA)
         self.var_top = tk.BooleanVar(value=config["visible"])
         self.var_texto_activo = tk.StringVar()
         self.var_bandeja = tk.BooleanVar(value=config["bandeja"] and HAY_BANDEJA)
@@ -1296,6 +1323,13 @@ class Ventana:
         for texto, valor in (("Z  (zheísmo)", "Z"), ("S  (sheísmo)", "S"), ("j  (yeísmo)", "j")):
             tk.Radiobutton(f2, text=texto, value=valor, variable=self.var_ll,
                            command=self.cambiar_ll).pack(side="left")
+
+        # z / Z
+        f2z = tk.LabelFrame(marco, text="Sonido de z  (minúscula / MAYÚSCULA)", padx=6, pady=3)
+        f2z.pack(fill="x", pady=(0, 4))
+        for texto, valor in (("z → s,  Z → dz", "sdz"), ("z → s,  Z → z", "sz"), ("z → z,  Z → dz", "zdz")):
+            tk.Radiobutton(f2z, text=texto, value=valor, variable=self.var_zeta,
+                           command=self.cambiar_zeta).pack(side="left")
 
         # Prueba
         f3 = tk.LabelFrame(marco, text="Prueba", padx=6, pady=3)
@@ -1511,9 +1545,15 @@ class Ventana:
         guardar_config()
         self.actualizar()
 
+    def cambiar_zeta(self):
+        global ZETA
+        ZETA = self.var_zeta.get()
+        guardar_config()
+        self.actualizar()
+
     def restaurar(self):
         """Vuelve a la configuracion predeterminada (no cambia si la conversion esta activa)."""
-        global YEISMO
+        global YEISMO, ZETA
         if not messagebox.askyesno("Restaurar predeterminados",
                                    "¿Volver a la configuración predeterminada?",
                                    parent=self.root):
@@ -1527,8 +1567,9 @@ class Ventana:
         if self.var_inicio.get():
             ok, error = inicio_desactivar()
             self.var_inicio.set(not ok)
-        YEISMO = "Z"
+        YEISMO, ZETA = "Z", "sdz"
         self.var_ll.set(YEISMO)
+        self.var_zeta.set(ZETA)
         self.var_top.set(False)
         self.var_bandeja.set(HAY_BANDEJA)
         self.var_tema.set("clasico")
@@ -1613,6 +1654,8 @@ class Ventana:
             txt.insert("end", linea + ("\n" if i < len(lineas) - 1 else ""))
             if re.match(r"^\S.*:$", linea):                          # encabezado de seccion
                 txt.tag_add("titulo", "%d.0" % n, "%d.end" % n)
+            if re.match(r"^ {6}[zZ] ", linea):                       # esquemas de la z
+                txt.tag_add("sub", "%d.0" % n, "%d.end" % n)
             m = re.match(r"^(\s+)(RR|[UIJRZ])\s\s", linea)           # letra en mayuscula
             if m:
                 c = len(m.group(1))
@@ -1659,6 +1702,7 @@ class Ventana:
         self.ay_texto.tag_config("titulo", foreground=titulo, font=self.fuente_ayuda_neg,
                                  spacing1=8, spacing3=2)
         self.ay_texto.tag_config("flecha", foreground=titulo)
+        self.ay_texto.tag_config("sub", font=self.fuente_ayuda_neg)
         self.ay_texto.tag_config("tecla", background=t["acento"], foreground=t["acento_fg"],
                                  font=self.fuente_ayuda_neg)
         self.ay_texto.tag_raise("sel")

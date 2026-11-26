@@ -1,5 +1,19 @@
 # Registro de cambios
 
+## v2.6
+
+### ✨ Novedades
+- **Vuelve la opción «Sonido de z (minúscula / MAYÚSCULA)»**, ahora con tres esquemas:
+  - `z → s`, `Z → dz` **(nuevo, predeterminado):** `za` → `s a`, `ZA` → `dz a`. La `s` sorda es el sonido real de la `z` española y la `Z` mayúscula da la `dz`, con un golpe de «d» antes: ataque más marcado, útil a principio de palabra o tras una pausa.
+  - `z → s`, `Z → z` (el comportamiento de la v2.5): `za` → `s a`, `ZA` → `z a`.
+  - `z → z`, `Z → dz`: `za` → `z a`, `ZA` → `dz a`.
+
+### 🔧 Mejoras
+- «Restaurar predeterminados» vuelve ahora a `z → s`, `Z → dz`.
+- La opción se guarda en `config.json`. Si ya tenías guardado un esquema, se respeta; en instalaciones nuevas, o tras restaurar predeterminados, se usa el nuevo.
+- El menú de ayuda («Atajos y fonemas») explica los tres esquemas de `Z`, con ejemplos.
+- La página web actualiza el apartado "Un vistazo" para que funcione igual que esta versión, con las capturas de los 29 temas renovadas.
+
 ## v2.5
 
 ### ✨ Novedades

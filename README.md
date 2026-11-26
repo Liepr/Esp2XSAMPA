@@ -10,7 +10,7 @@ Convierte en vivo lo que tecleas en español a fonemas X-SAMPA que los voicebank
 
 🌐 **[Web oficial](https://esp2xsampa.nekoweb.org/)** · 📦 [Descargas](../../releases)
 
-![Versión](https://img.shields.io/badge/versión-2.5-1f6feb)
+![Versión](https://img.shields.io/badge/versión-2.6-1f6feb)
 ![Licencia](https://img.shields.io/badge/licencia-GPL--3.0-2ea44f)
 ![Plataforma](https://img.shields.io/badge/Windows-0078d7?logo=windows&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.x-3776ab?logo=python&logoColor=white)
@@ -38,7 +38,7 @@ pió     →  p' o               kiU     →  k' M
 - **Tecla de activación configurable** (F1-F24, Pause, Insert, etc.). Por defecto, `F9`.
 - **Variantes con mayúsculas** (Bloq Mayús o Shift): `U`, `I`, `J`, `G`, `R`, `Z`, `A`, `E`, `O` cambian el resultado.
 - **Palatalización automática** con `i` (`ti` → `t' i`, `ni` → `J i`...) solo con pares que existen de verdad en los VOCALOID.
-- **Ajuste de pronunciación:** `ll` / `y` (zheísmo, sheísmo o yeísmo).
+- **Ajustes de pronunciación:** `ll` / `y` (zheísmo, sheísmo o yeísmo) y `z` / `Z` (tres esquemas; por defecto `z` → `s` y `Z` → `dz`).
 - **Bandeja del sistema**, instancia única e inicio opcional con Windows.
 - **29 temas:** Clásico, VOCALOID7, voces de Crypton y banderas de países hispanohablantes.
 - Ligero y portable: la configuración se guarda en `config.json`, junto al programa.
@@ -67,10 +67,23 @@ pió     →  p' o               kiU     →  k' M
 | `j`, `ge`, `gi` | `h` | `JI` → `C i`, `JU` → `p\ M` |
 | `ñ` | `J` | |
 | `ll`, `y` | `Z` (configurable) | `S` o `j` según dialecto |
+| `z` | `s` (configurable) | `Z` → `dz` por defecto; ver más abajo |
 | `ti`, `ki`, `pi`... | `t' i`, `k' i`, `p' i` | Palatalización ante `i` |
 | `i` + vocal | `j` | `I` fuerza la vocal `i` |
 
-### 🆕 Erre fuerte con `RR` (v2.5)
+### 🆕 Sonido de `z` y `Z` (v2.6)
+
+La `z` española es `[s]` (seseo), y el japonés no tiene `[θ]`. En la ventana, «Sonido de z (minúscula / MAYÚSCULA)» ofrece tres esquemas:
+
+| Esquema | `za` | `ZA` | Para qué sirve |
+|---|---|---|---|
+| `z → s`, `Z → dz` *(predeterminado)* | `s a` | `dz a` | La `s` sorda es el sonido real; la `Z` da un ataque más marcado (golpe de «d»), útil al inicio de palabra o tras una pausa |
+| `z → s`, `Z → z` | `s a` | `z a` | La `Z` da la `z` sonora, más suave y «zumbada»; sirve si la `s` suena seca o para la z sonora (*mismo*, *desde*) |
+| `z → z`, `Z → dz` | `z a` | `dz a` | Fricativa continua con la minúscula; la `s` sorda solo sale con la letra `s` |
+
+La opción se guarda en `config.json` y puede alternarse letra por letra con las mayúsculas.
+
+### Erre fuerte con `RR` (v2.5)
 
 Cada `R` mayúscula da dos `4`, así que dos `R` mayúsculas juntas (`RR`) dan cuatro: una erre fuertemente pronunciada, más marcada que la `R` sola.
 

@@ -32,7 +32,6 @@ YEISMO = "Z"
 # esquema de z elegido (ver ZETA_ESQUEMAS abajo); la c minuscula siempre da "s":
 #   z -> s, Z / C -> dz:   ce -> s e   Ce -> dz e   Ci -> dz i
 #   z -> s, Z / C -> ts:   ce -> s e   Ce -> ts e   Ci -> ts i
-#   z -> s, Z / C -> tS:   ce -> s e   Ce -> tS e   Ci -> tS i
 #   z -> s, Z / C -> z:    ce -> s e   Ce -> z e    Ci -> z i
 # (Ca, Co, Cu y Ch no cambian)
 
@@ -85,7 +84,7 @@ F_SUAVE = "p\\"
 
 # La "z" espanola es [s] (seseo) o [θ] (Espana); en japones no hay [θ].
 # La "c" ante e / i (ce, ci) suena igual que la z, asi que el esquema elegido afecta a las dos.
-# Hay cuatro esquemas (se elige en la ventana); el predeterminado es "sdz".
+# Hay tres esquemas (se elige en la ventana); el predeterminado es "sdz".
 # La minuscula (z, y c ante e / i) siempre da s; la MAYUSCULA (Z, y C ante e / i) cambia:
 #   "sdz":  minuscula s  (さ, sorda)   el sonido real de la z espanola
 #           mayuscula dz (ざ africada) lleva un golpe de "d" antes: ataque marcado cuando
@@ -93,18 +92,15 @@ F_SUAVE = "p\\"
 #   "sts":  minuscula s  (さ, sorda)   el sonido real de la z espanola
 #           mayuscula ts (つ africada) lleva un golpe de "t" antes: ataque marcado como la dz,
 #                                      pero sorda, igual que la s (sin voz).
-#   "sch":  minuscula s  (さ, sorda)   el sonido real de la z espanola
-#           mayuscula tS (ち africada) como la "ch": ataque marcado y sordo, mas
-#                                      "chicheante" que ts; util si la ts suena corta o seca.
 #   "sz":   minuscula s  (さ, sorda)   el sonido real de la z espanola
 #           mayuscula z  (ざ, sonora)  mas suave y "zumbada"; sirve si la s suena seca
 #                                      o se pierde entre vocales, o para la z sonora
 #                                      (mismo, desde). Es una opcion estetica.
 # "Mayuscula" = Bloq Mayus o Shift. Se puede alternar letra por letra.
-#   za -> s a    ZA -> dz a / ts a / tS a / z a    ce -> s e    Ce -> dz e / ts e / tS e / z e
-# (El antiguo esquema "zdz" -- z -> z, Z -> dz -- se quito en la v3.0; si config.json lo
-# tiene guardado, se usa el predeterminado.)
-ZETA_ESQUEMAS = {"sdz": ("s", "dz"), "sts": ("s", "ts"), "sch": ("s", "tS"), "sz": ("s", "z")}   # (minuscula, mayuscula)
+#   za -> s a    ZA -> dz a / ts a / z a        ce -> s e    Ce -> dz e / ts e / z e
+# (Los esquemas "zdz" -- z -> z, Z -> dz -- y "sch" -- Z / C -> tS, que sonaba incorrecto --
+# ya no existen; si config.json los tiene guardados, se usa el predeterminado.)
+ZETA_ESQUEMAS = {"sdz": ("s", "dz"), "sts": ("s", "ts"), "sz": ("s", "z")}   # (minuscula, mayuscula)
 ZETA = "sdz"
 
 # La "i": en minuscula el programa decide solo si es semiconsonante (j) o vocal (i):
@@ -960,7 +956,6 @@ TEXTO_AYUDA = (
     "      sigue siendo tS.\n"
     "      Con z \u2192 s,  Z / C \u2192 dz:   ce \u2192 s e   Ce \u2192 dz e   Ci \u2192 dz i\n"
     "      Con z \u2192 s,  Z / C \u2192 ts:   ce \u2192 s e   Ce \u2192 ts e   Ci \u2192 ts i\n"
-    "      Con z \u2192 s,  Z / C \u2192 tS:   ce \u2192 s e   Ce \u2192 tS e   Ci \u2192 tS i\n"
     "      Con z \u2192 s,  Z / C \u2192 z:    ce \u2192 s e   Ce \u2192 z e    Ci \u2192 z i\n"
     "      ca \u2192 k a        Ca \u2192 k a\n"
     "\n"
@@ -972,7 +967,7 @@ TEXTO_AYUDA = (
     "      Al final de la sílaba (hoy, rey) la Y no cambia.\n"
     "\n"
     "  Z  cambia a su variante, y con ella la C de Ce / Ci. En la\n"
-    "      ventana se elige entre cuatro esquemas:\n"
+    "      ventana se elige entre tres esquemas:\n"
     "\n"
     "      z \u2192 s,  Z / C \u2192 dz   (predeterminado)\n"
     "        La s sorda (\u3055) es el sonido real de la z espa\u00f1ola, y se\n"
@@ -987,13 +982,6 @@ TEXTO_AYUDA = (
     "        ataque marcado como la dz, pero sorda, igual que la s.\n"
     "        \u00datil si la dz suena demasiado sonora.\n"
     "        za \u2192 s a        ZA \u2192 ts a        Ce \u2192 ts e\n"
-    "\n"
-    "      z \u2192 s,  Z / C \u2192 tS\n"
-    "        La s sorda se mantiene con la z min\u00fascula. La Z may\u00fascula\n"
-    "        (y la C de Ce, Ci) da la tS (\u3061), la misma africada de la\n"
-    "        \"ch\": ataque marcado y sordo, m\u00e1s \"chicheante\" que la ts.\n"
-    "        \u00datil si la ts suena corta o seca.\n"
-    "        za \u2192 s a        ZA \u2192 tS a        Ce \u2192 tS e\n"
     "\n"
     "      z \u2192 s,  Z / C \u2192 z\n"
     "        La s (\u3055) es el sonido real de la z espa\u00f1ola. La z\n"
@@ -1385,10 +1373,9 @@ class Ventana:
         # z / Z  (y c / C ante e, i)
         f2z = tk.LabelFrame(marco, text="Sonido de z / c  (minúscula / MAYÚSCULA)", padx=6, pady=3)
         f2z.pack(fill="x", pady=(0, 4))
-        for k, (texto, valor) in enumerate((("z → s,  Z / C → dz", "sdz"), ("z → s,  Z / C → ts", "sts"),
-                                            ("z → s,  Z / C → tS", "sch"), ("z → s,  Z / C → z", "sz"))):
+        for texto, valor in (("z → s,  Z / C → dz", "sdz"), ("z → s,  Z / C → ts", "sts"), ("z → s,  Z / C → z", "sz")):
             tk.Radiobutton(f2z, text=texto, value=valor, variable=self.var_zeta,
-                           command=self.cambiar_zeta).grid(row=k // 2, column=k % 2, sticky="w", padx=(0, 12))
+                           command=self.cambiar_zeta).pack(side="left", padx=(0, 10))
 
         # Prueba
         f3 = tk.LabelFrame(marco, text="Prueba", padx=6, pady=3)
